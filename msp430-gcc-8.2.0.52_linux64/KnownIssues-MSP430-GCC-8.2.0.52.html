@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    
+    <title>MSP430-GCC 8.2.0.52 Known Issues</title>
+    <style type="text/css">
+      body { font-family: "Source Sans Pro", sans-serif; font-size: 10pt }
+      samp { font-size: 9pt; background-color: #dcdde1; padding: 5px }
+      #s01 { font-size: 9pt; background-color: #dcdde1; padding: 0px; white-space: nowrap; }
+      p, li { max-width: 60em; }
+      table, td, th { border: 1px black solid; border-collapse: collapse;
+                       padding: 0.3em; max-width: 80em; }
+      th { white-space: nowrap; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>MSP430-GCC 8.2.0.52 Known Issues</h1>
+    </header>
+    <p>
+    Listed below are the known issues in this version of the MSP430-GCC
+    toolchain. Their current status can be tracked in Texas
+    Instruments' Development Tools bug database - called SDOWP. Just enter the bug
+    ID (e.g. "MSPGCC-156") in the search box.
+    <br>
+    Read-only access to SDOWP is available at the below URL:
+    </p>
+
+    <samp>https://cqweb.ext.ti.com/cqweb/main?command=GenerateMainFrame&amp;service=CQ&amp;schema=SDO-Web&amp;contextid=SDOWP&amp;username=readonly&amp;password=readonly</samp>
+    <h2>Open Issues</h2>
+    <p>
+    <table>
+      <thead><tr><th>Bug ID</th><th>Title</th><th>Summary</th><th>Target Release</th><th>Workaround</th></tr></thead>
+      <tr><th>MSPGCC-39</th>
+        <td>Excessive register push/pop in ISR</td>
+        <td>In an interrupt function that calls another function, the compiler generates code to save and restore all general purpose registers.
+        Only the callee-saved regs R4-R10 that are actually used by the called function are required to be saved by the interrupt function.</td>
+        <td>8.3.0</td>
+        <td>N/A</td>
+      </tr>
+      <tr><th>MSPGCC-156</th>
+        <td>Inclusion of runtime support library functions is not dynamic with LTO</td>
+        <td>Runtime support library functions (CRT), to perform tasks such as initializing data/bss, or executing global constructors, are not all required in every application.<br>
+        The assembler and linker work together to only include the CRT functions needed.
+        This dynamic behaviour is not yet supported when LTO is enabled (with the <samp id="s01">-flto</samp> flag), so all CRT functions must be included in the final program, in case they are needed.</td>
+        <td>8.3.0</td>
+        <td>There should be no functional issue with the current behaviour, however code size may be negatively affected as all runtime support
+        functionality must be enabled.
+        Disabling LTO by removing the <samp id="s01">-flto</samp> flag may therefore reduce code size, as only the required CRT functions will be linked into the final program.</td>
+      </tr>
+      <tr><th>MSPGCC-175</th>
+        <td>Identical interrupt functions are erroneously folded at -O2 and above</td>
+        <td>When two different functions contain the same code, GCC can attempt to optimize one of the functions by removing the content of the function and inserting a call to the other, identical function.
+          <br>Interrupt functions have different calling conventions to regular functions, which this optimization does not take into account. This can result in corruption of the stack, leading to undefined program behaviour.</td>
+        <td>8.3.0</td>
+        <td>Pass <samp id="s01">-fno-ipa-icf-functions</samp> to msp430-elf-gcc to disable the "identical code folding" optimization for functions.</td>
+      </tr>
+
+      <tr><th>MSPGCC-176</th>
+        <td>devices.csv not found when path to support files is passed with <samp id="s01">-Wl,-L</samp></td>
+        <td>msp430-elf-gcc searches the paths passed to the <samp id="s01">-I</samp> and <samp id="s01">-L</samp> options for the <samp id="s01">devices.csv</samp> file, which
+        contains data about MSP430 devices. For newer devices whose ISA or hardware multiply support is not hard-coded into the toolchain, this file is required for proper operation of the
+        <samp id="s01">-mmcu</samp> option.
+        <br>
+        When the linker library path is passed directly to the linker with <samp id="s01">-Wl,-L</samp>, and there are no
+        other <samp id="s01">-I</samp> or <samp id="s01">-L</samp> options containing the path to devices.csv on the command line, the <samp id="s01">-Wl,-L</samp>
+        path is not searched, and devices.csv is not found.</td>
+        <td>8.3.0</td>
+        <td>Omit <samp id="s01">-Wl</samp> when using the <samp id="s01">-L</samp> option. Linker library paths can be specified with <samp id="s01">-L</samp> and do not need to be passed directly to the linker.</td>
+      </tr>
+      <tr><th>MSPGCC-177</th>
+        <td>Packet error in GDB when loading large programs on some devices</td>
+        <td>It may take several seconds to load large programs onto some devices using GDB and the GDB agent.
+          <br>If the default timeout of 2 seconds for the GDB agent to respond to GDB is exceeded, then a packet error can occur and subsequent GDB commands may fail.</td>
+        <td>8.3.0</td>
+        <td>Increase the "remotetimeout" value in GDB e.g.<br>
+          <samp id="s01">set remotetimeout 10</samp></td>
+      </tr>
+    </table>
+  </body>
+</html>

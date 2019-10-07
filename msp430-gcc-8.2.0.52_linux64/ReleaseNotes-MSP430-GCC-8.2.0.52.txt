@@ -1,0 +1,74 @@
+﻿MSP430-GCC 8.2.0.52 Release Notes
+---
+GCC
+* Updated to GCC 8.2.
+  + For the full list of improvements to optimizations, compiler messages, new
+    options and more, visit https://gcc.gnu.org/gcc-8/changes.html.
+* Reduced the code size of library functions used by GCC for performing
+  bitwise shifts.
+* Added -mtiny-printf option, which reduces code size when using printf().
+  + -mtiny-printf instructs GCC to use size-optimized versions of printf() and
+    puts(), at the cost of reduced functionality. See the MSP430-GCC User Guide
+    for more details.
+* Reduced code size when using the large memory model (-mlarge).
+  + When -mdata-region=lower is passed to GCC, the compiler will assume that
+    global data objects are in the lower 64KB of memory. This means MSP430
+    format instructions can be used instead of MSP430X instructions, when
+    handling memory operands.
+  + The ".lower" prefix is no longer automatically added to section names when
+    compiling with -m{code,data}-region=lower. The -muse-lower-region-prefix
+    option must be used in conjunction with -m{code,data}-region=lower for the
+    ".lower" prefix to be added.
+  + -mdata-region=lower is now set by default. -mdata-region=none is equivalent
+    to the previous default behavior, where MSP430X instructions are always
+    used when handling memory operands.
+  + The linker will exit with an error if an object file compiled with
+    -mdata-region=lower is linked with an object file compiled with a different
+    -mdata-region value.
+  + MSP430X instructions will always be used when handling data which has been
+    marked with the "persistent", "noinit", "upper" or "either" attributes.
+* Reduced code size of C runtime (CRT) library code
+  + GCC now registers global C++ constructors and destructors in the .init_array
+    and .fini_array sections instead of .ctors and .dtors. The library code to
+    run through the .init_array and .fini_array sections will only be linked in
+    these sections exist and have contents.
+  + Support for transactional memory has been removed.
+  + GCC now uses atexit() to register C++ destructors, instead of
+    __cxa_atexit().
+* Added warning that the "critical" attribute has no effect when used with the
+  "interrupt" attribute.
+* Fixed quadratic compile time behavior when attempting to optimize the
+  addition of many __int20 variables.
+* Fixed compiler error when using R0 as a register variable.
+* Improved warnings when misusing data attributes.
+* Disabled C++ exception handling by default.
+  + -fno-exceptions will always be assumed when building C++ programs, unless
+    -fexceptions is passed to the compiler.
+  + An alternate version of the C++ libraries, built with -fno-exceptions, has
+    been added to the toolchain. This version is automatically selected
+    when C++ exceptions are disabled, and significantly reduces code size
+    compared to when C++ exceptions are enabled.
+
+Binutils
+* Improved detection of instructions that will enable or disable interrupts,
+  and added more informative warnings about inserting NOPs before/after
+  interrupt state changes.
+  + Added -mu and -mU assembler options for controlling whether warnings about
+    interrupt state changes, where the effect on interrupt state is unknown,
+    are emitted.
+* Removed unnecessary warnings about NOPs being required before/after interrupt
+  state changes for the MSP430 ISA.
+* Fixed sections with ".lower" or ".upper" prefixed names sometimes not being
+  placed exactly where the matching linker script rule specified.
+* Removed deprecated assembler option -md.
+
+Newlib (C Library)
+* Reduced code size when using single-precision float arithmetic library
+  functions.
+  + Removed support for matherr() from libm.
+  + Removed support for the SVID and X/Open libm configurations. The default
+    libm configuration is now "IEEE".
+* Fixed missing definition of unlink() from the simulator CRT libraries.
+
+GDB
+* No changes.
